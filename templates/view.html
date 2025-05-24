@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Messages</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-16">
+        <div class="max-w-2xl mx-auto">
+            <h1 class="text-4xl font-bold text-gray-800 mb-8 text-center">Your Messages</h1>
+
+            <div class="space-y-4">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <p class="text-gray-800 text-lg mb-2">{{ message.content }}</p>
+                    <p class="text-gray-500 text-sm">{{ message.timestamp }}</p>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <p class="text-gray-600">No messages yet. Share your link to start receiving messages!</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mt-8 text-center">
+                <a href="/" class="text-blue-500 hover:text-blue-600">Create a new link</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
