@@ -15,52 +15,19 @@
             <h1 class="text-4xl font-bold text-gray-800 mb-8">Anonymous Messages</h1>
             <p class="text-lg text-gray-600 mb-8">Create a unique link to receive anonymous messages from anyone!</p>
 
-            <button id="createLink"
-                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
-                Create Your Link
-            </button>
-
-            <div id="linkContainer" class="mt-8 hidden">
-                <p class="text-gray-600 mb-4">Share this link to receive anonymous messages:</p>
-                <div class="flex items-center justify-center space-x-4">
-                    <input type="text" id="messageLink" class="flex-1 p-3 border rounded-lg" readonly>
-                    <button onclick="copyLink()"
-                        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
-                        Copy
-                    </button>
-                </div>
-                <a id="viewMessages" href="#" class="inline-block mt-4 text-blue-500 hover:text-blue-600">
-                    View Messages
+            <div class="space-y-4">
+                <a href="{{ url_for('register') }}"
+                    class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                    Create Account
+                </a>
+                <br>
+                <a href="{{ url_for('login') }}"
+                    class="inline-block bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                    Login
                 </a>
             </div>
         </div>
     </div>
-
-    <script>
-        document.getElementById('createLink').addEventListener('click', async () => {
-            const response = await fetch('/create', {
-                method: 'POST'
-            });
-            const data = await response.json();
-
-            const linkContainer = document.getElementById('linkContainer');
-            const messageLink = document.getElementById('messageLink');
-            const viewMessages = document.getElementById('viewMessages');
-
-            const fullLink = window.location.origin + data.link;
-            messageLink.value = fullLink;
-            viewMessages.href = window.location.origin + '/view/' + data.link.split('/').pop();
-
-            linkContainer.classList.remove('hidden');
-        });
-
-        function copyLink() {
-            const linkInput = document.getElementById('messageLink');
-            linkInput.select();
-            document.execCommand('copy');
-            alert('Link copied to clipboard!');
-        }
-    </script>
 </body>
 
 </html>

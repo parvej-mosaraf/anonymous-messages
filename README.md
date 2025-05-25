@@ -1,95 +1,131 @@
-# Anonymous Messages
+# Anonymous Messages Platform
 
-A simple web application that allows users to create a unique link where others can send them anonymous messages.
+A secure web application that allows users to receive anonymous messages through a unique, shareable link. Built with Flask and modern web technologies.
 
-## 🌟 Features
+## Features
 
-- Create a unique link to receive anonymous messages
-- Send anonymous messages through a simple form
-- View all received messages
-- Modern and responsive design using Tailwind CSS
-- No registration required
-- Real-time message delivery
-- Copy link to clipboard functionality
+- 🔐 **Secure Authentication**
+  - 6-digit PIN-based authentication
+  - Secure password hashing using Werkzeug
+  - Session-based user management
 
-## 🏗️ Architecture
+- 🔒 **Message Security**
+  - End-to-end message encryption
+  - Messages are encrypted using recipient's credentials
+  - Only message owners can decrypt and view their messages
+
+- 🎯 **User-Friendly Interface**
+  - Clean, modern UI using Tailwind CSS
+  - Responsive design for all devices
+  - Intuitive message management dashboard
+
+- 📱 **Easy Message Sharing**
+  - Generate unique, shareable links
+  - One-click link copying
+  - Anonymous message submission
+
+## System Architecture
 
 ```mermaid
 graph TD
-    A[User] -->|Creates Link| B[Homepage]
-    B -->|Generates| C[Unique User ID]
-    C -->|Stores| D[JSON File]
-    E[Anonymous User] -->|Sends Message| F[Message Form]
-    F -->|Saves| D
-    A -->|Views| G[Messages Page]
-    G -->|Reads| D
+    A[User] -->|Register/Login| B[Authentication]
+    B -->|Valid Credentials| C[Dashboard]
+    C -->|Generate| D[Unique Link]
+    D -->|Share| E[Anonymous Sender]
+    E -->|Submit| F[Message System]
+    F -->|Encrypt| G[Message Storage]
+    G -->|Decrypt| H[Message View]
+    H -->|Display| C
 ```
 
-## 📁 Project Structure
+## Security Features
+
+1. **PIN Security**
+   - 6-digit numeric PIN requirement
+   - Secure hashing using Werkzeug's security functions
+   - Protection against brute force attacks
+
+2. **Message Encryption**
+   - Messages encrypted using recipient's credentials
+   - Fernet symmetric encryption
+   - Secure key generation and management
+
+3. **Session Management**
+   - Secure session handling
+   - Automatic session expiration
+   - Protection against session hijacking
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/anonymous-messages.git
+cd anonymous-messages
+```
+
+2. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+4. Run the application:
+```bash
+python app.py
+```
+
+## Project Structure
 
 ```
 anonymous-messages/
-├── app.py              # Main Flask application
-├── requirements.txt    # Python dependencies
-├── static/            # Static files
-│   └── style.css      # Custom styles
+├── app.py              # Main application file
+├── requirements.txt    # Project dependencies
+├── static/            # Static files (CSS, JS)
 ├── templates/         # HTML templates
-│   ├── index.html     # Homepage
-│   ├── message.html   # Message sending form
-│   └── view.html      # Message viewing page
-└── messages/          # Message storage (gitignored)
+│   ├── index.html    # Landing page
+│   ├── login.html    # Login page
+│   ├── register.html # Registration page
+│   ├── dashboard.html # User dashboard
+│   ├── message.html  # Message submission page
+│   └── view.html     # Message viewing page
+├── messages/         # Encrypted message storage
+└── users/           # User data storage
 ```
 
-## 🚀 Setup
+## Usage
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/anonymous-messages.git
-   cd anonymous-messages
-   ```
+1. **Registration**
+   - Create an account with username and 6-digit PIN
+   - PIN must be exactly 6 digits (0-9)
 
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   # On Windows
-   venv\Scripts\activate
-   # On Unix or MacOS
-   source venv/bin/activate
-   ```
+2. **Dashboard**
+   - Generate your unique message link
+   - View message count and access messages
+   - Copy and share your link
 
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+3. **Receiving Messages**
+   - Share your unique link
+   - Others can send anonymous messages
+   - Messages are automatically encrypted
 
-4. Run the application:
-   ```bash
-   python app.py
-   ```
+4. **Viewing Messages**
+   - Access your messages through the dashboard
+   - Messages are automatically decrypted
+   - View message history with timestamps
 
-5. Open your browser and visit `http://localhost:5000`
+## Security Considerations
 
-## 💻 How to Use
+- All PINs are stored as secure hashes
+- Messages are encrypted using recipient's credentials
+- Session management with secure cookies
+- Protection against common web vulnerabilities
 
-1. Visit the homepage and click "Create Your Link"
-2. Share the generated link with anyone you want to receive messages from
-3. People can visit your link and send you anonymous messages
-4. View your messages by clicking the "View Messages" link
-
-## 🔒 Security Considerations
-
-This is a simple implementation for demonstration purposes. In a production environment, you would want to add:
-
-- Rate limiting to prevent spam
-- Message filtering for inappropriate content
-- User authentication for message management
-- HTTPS for secure communication
-- Database instead of file storage
-- Input sanitization
-- CSRF protection
-- XSS prevention
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -97,12 +133,13 @@ This is a simple implementation for demonstration purposes. In a production envi
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- [Flask](https://flask.palletsprojects.com/) - Web framework
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-- [Mermaid](https://mermaid-js.github.io/) - Diagrams 
+- Flask web framework
+- Tailwind CSS for styling
+- Werkzeug for security features
+- Cryptography library for message encryption 
