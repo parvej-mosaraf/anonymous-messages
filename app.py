@@ -18,16 +18,20 @@ import hashlib
 import secrets
 import base64
 from werkzeug.security import generate_password_hash, check_password_hash
+from pymongo import MongoClient
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)  # For session management
 
-# Create necessary directories
-MESSAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "messages")
-USERS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "users")
-for directory in [MESSAGES_DIR, USERS_DIR]:
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+# MongoDB connection
+client = MongoClient(os.getenv("MONGODB_URI"))
+db = client.anonymous_messages
+users_collection = db.users
+messages_collection = db.messages
 
 
 def validate_password(password):
@@ -36,19 +40,13 @@ def validate_password(password):
 
 
 def get_user_data(username):
-    """Get user data from file"""
-    filename = os.path.join(USERS_DIR, f"{username}.json")
-    if os.path.exists(filename):
-        with open(filename, "r") as f:
-            return json.load(f)
-    return None
+    """Get user data from MongoDB"""
+    return users_collection.find_one({"username": username})
 
 
 def save_user_data(username, data):
-    """Save user data to file"""
-    filename = os.path.join(USERS_DIR, f"{username}.json")
-    with open(filename, "w") as f:
-        json.dump(data, f)
+    """Save user data to MongoDB"""
+    users_collection.update_one({"username": username}, {"$set": data}, upsert=True)
 
 
 def get_encryption_key(username, password):
@@ -83,34 +81,23 @@ def decrypt_message(encrypted_message, username, password):
 
 
 def get_messages(user_id):
-    """Get messages for a user"""
-    filename = os.path.join(MESSAGES_DIR, f"{user_id}.json")
-    if os.path.exists(filename):
-        try:
-            with open(filename, "r") as f:
-                return json.load(f)
-        except json.JSONDecodeError:
-            print(f"Error reading messages for user {user_id}")
-            return []
-    return []
+    """Get messages for a user from MongoDB"""
+    messages = list(messages_collection.find({"user_id": user_id}))
+    return messages
 
 
 def save_message(user_id, message, username, password):
-    """Save encrypted message"""
-    filename = os.path.join(MESSAGES_DIR, f"{user_id}.json")
+    """Save encrypted message to MongoDB"""
     try:
-        messages = get_messages(user_id)
         encrypted_message = encrypt_message(message, username, password)
         if encrypted_message:
-            messages.append(
-                {
-                    "id": str(uuid.uuid4()),
-                    "content": encrypted_message,
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                }
-            )
-            with open(filename, "w") as f:
-                json.dump(messages, f)
+            message_data = {
+                "id": str(uuid.uuid4()),
+                "user_id": user_id,
+                "content": encrypted_message,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            messages_collection.insert_one(message_data)
             return True
     except Exception as e:
         print(f"Error saving message: {e}")
@@ -185,7 +172,7 @@ def dashboard():
         return redirect(url_for("login"))
 
     user_id = session["user_id"]
-    message_count = len(get_messages(user_id))
+    message_count = messages_collection.count_documents({"user_id": user_id})
 
     return render_template(
         "dashboard.html", username=session["username"], message_count=message_count
@@ -203,13 +190,7 @@ def create_link():
 
 @app.route("/message/<user_id>")
 def message_page(user_id):
-    user_data = None
-    for filename in os.listdir(USERS_DIR):
-        with open(os.path.join(USERS_DIR, filename), "r") as f:
-            data = json.load(f)
-            if data["user_id"] == user_id:
-                user_data = data
-                break
+    user_data = users_collection.find_one({"user_id": user_id})
 
     if not user_data:
         return "User not found", 404
@@ -225,14 +206,7 @@ def send_message(user_id):
     if not message:
         return jsonify({"success": False, "error": "Message is required"})
 
-    user_data = None
-    for filename in os.listdir(USERS_DIR):
-        with open(os.path.join(USERS_DIR, filename), "r") as f:
-            data = json.load(f)
-            if data["user_id"] == user_id:
-                user_data = data
-                break
-
+    user_data = users_collection.find_one({"user_id": user_id})
     if not user_data:
         return jsonify({"success": False, "error": "User not found"})
 
@@ -266,6 +240,16 @@ def view_messages(user_id):
             )
 
     return render_template("view.html", messages=decrypted_messages)
+
+
+@app.route("/test-db")
+def test_db():
+    try:
+        # Test the connection
+        client.admin.command("ping")
+        return "MongoDB connection successful!"
+    except Exception as e:
+        return f"MongoDB connection failed: {str(e)}"
 
 
 if __name__ == "__main__":
