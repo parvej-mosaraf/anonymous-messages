@@ -1,6 +1,6 @@
 # Anonymous Messages Platform
 
-A secure web application that allows users to receive anonymous messages through a unique, shareable link. Built with Flask and modern web technologies.
+A secure web application that allows users to receive anonymous messages through a unique, shareable link. Built with Flask, MongoDB, and modern web technologies.
 
 ## Features
 
@@ -13,6 +13,7 @@ A secure web application that allows users to receive anonymous messages through
   - End-to-end message encryption
   - Messages are encrypted using recipient's credentials
   - Only message owners can decrypt and view their messages
+  - Secure data storage in MongoDB Atlas
 
 - 🎯 **User-Friendly Interface**
   - Clean, modern UI using Tailwind CSS
@@ -33,9 +34,44 @@ graph TD
     C -->|Generate| D[Unique Link]
     D -->|Share| E[Anonymous Sender]
     E -->|Submit| F[Message System]
-    F -->|Encrypt| G[Message Storage]
+    F -->|Encrypt| G[MongoDB Atlas]
     G -->|Decrypt| H[Message View]
     H -->|Display| C
+
+    subgraph "Database Layer"
+        G -->|Users Collection| I[User Data]
+        G -->|Messages Collection| J[Encrypted Messages]
+    end
+```
+
+## Data Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant MongoDB
+    participant Render
+
+    User->>App: Register/Login
+    App->>MongoDB: Store/Verify User Data
+    MongoDB-->>App: User Data
+    App-->>User: Dashboard Access
+
+    User->>App: Generate Link
+    App->>MongoDB: Store User ID
+    App-->>User: Shareable Link
+
+    Anonymous->>App: Send Message
+    App->>MongoDB: Store Encrypted Message
+    MongoDB-->>App: Confirmation
+    App-->>Anonymous: Success
+
+    User->>App: View Messages
+    App->>MongoDB: Fetch Messages
+    MongoDB-->>App: Encrypted Messages
+    App->>App: Decrypt Messages
+    App-->>User: Display Messages
 ```
 
 ## Security Features
@@ -50,7 +86,14 @@ graph TD
    - Fernet symmetric encryption
    - Secure key generation and management
 
-3. **Session Management**
+3. **Database Security**
+   - MongoDB Atlas cloud database
+   - Encrypted data at rest
+   - Secure connection strings
+   - IP whitelisting
+   - Role-based access control
+
+4. **Session Management**
    - Secure session handling
    - Automatic session expiration
    - Protection against session hijacking
@@ -74,7 +117,18 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Run the application:
+4. Set up MongoDB:
+   - Create a MongoDB Atlas account
+   - Create a new cluster
+   - Set up database user and network access
+   - Get your connection string
+
+5. Create .env file:
+```
+MONGODB_URI=your_mongodb_connection_string
+```
+
+6. Run the application:
 ```bash
 python app.py
 ```
@@ -85,6 +139,7 @@ python app.py
 anonymous-messages/
 ├── app.py              # Main application file
 ├── requirements.txt    # Project dependencies
+├── .env               # Environment variables
 ├── static/            # Static files (CSS, JS)
 ├── templates/         # HTML templates
 │   ├── index.html    # Landing page
@@ -93,9 +148,46 @@ anonymous-messages/
 │   ├── dashboard.html # User dashboard
 │   ├── message.html  # Message submission page
 │   └── view.html     # Message viewing page
-├── messages/         # Encrypted message storage
-└── users/           # User data storage
 ```
+
+## Database Schema
+
+### Users Collection
+```json
+{
+    "username": "string",
+    "password": "hashed_string",
+    "user_id": "uuid_string"
+}
+```
+
+### Messages Collection
+```json
+{
+    "id": "uuid_string",
+    "user_id": "uuid_string",
+    "content": "encrypted_string",
+    "timestamp": "datetime_string"
+}
+```
+
+## Deployment
+
+The application is deployed on Render with the following setup:
+
+1. **Environment Variables**
+   - `MONGODB_URI`: MongoDB Atlas connection string
+   - `SECRET_KEY`: Flask session secret key
+
+2. **Build Command**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Start Command**
+   ```bash
+   gunicorn app:app
+   ```
 
 ## Usage
 
@@ -111,7 +203,7 @@ anonymous-messages/
 3. **Receiving Messages**
    - Share your unique link
    - Others can send anonymous messages
-   - Messages are automatically encrypted
+   - Messages are automatically encrypted and stored in MongoDB
 
 4. **Viewing Messages**
    - Access your messages through the dashboard
@@ -120,8 +212,9 @@ anonymous-messages/
 
 ## Security Considerations
 
-- All PINs are stored as secure hashes
+- All PINs are stored as secure hashes in MongoDB
 - Messages are encrypted using recipient's credentials
+- MongoDB Atlas provides encrypted data at rest
 - Session management with secure cookies
 - Protection against common web vulnerabilities
 
@@ -140,6 +233,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - Flask web framework
+- MongoDB Atlas for database
 - Tailwind CSS for styling
 - Werkzeug for security features
-- Cryptography library for message encryption 
+- Cryptography library for message encryption
+- Render for hosting 
